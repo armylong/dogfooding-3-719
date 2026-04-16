@@ -76,4 +76,16 @@ func RegisterCmd(command command.BaseCommand) {
 	}
 	dogfoodingTestingCmd.Flags().StringP("question_id", "", "", "题目ID")
 	command.AddCliCommand(dogfoodingTestingCmd)
+
+	// -----------------------------------------------------------------------------------------------------------------
+	monitorCmd := &cobra.Command{
+		Use:   "monitor [category] [action]",
+		Short: "系统监控",
+		Run:   cmd.MonitorCmd.MonitorHandler,
+	}
+	monitorCmd.Flags().BoolP("refresh", "", false, "实时刷新显示")
+	monitorCmd.Flags().IntP("interval", "", 2, "刷新间隔（秒）")
+	monitorCmd.Flags().StringP("sort", "", "", "排序方式（cpu/memory/pid）")
+	monitorCmd.Flags().IntP("limit", "", 10, "显示数量限制")
+	command.AddCliCommand(monitorCmd)
 }
