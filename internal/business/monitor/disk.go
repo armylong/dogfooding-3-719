@@ -7,20 +7,24 @@ import (
 	"github.com/shirou/gopsutil/v4/disk"
 )
 
+// DiskInfo 磁盘信息结构体
 type DiskInfo struct {
-	Device     string
-	MountPoint string
-	Total      uint64
-	Used       uint64
-	Free       uint64
-	UsedPercent float64
-	Fstype     string
+	Device      string  // 设备名称
+	MountPoint  string  // 挂载点
+	Total       uint64  // 总容量(字节)
+	Used        uint64  // 已使用(字节)
+	Free        uint64  // 剩余空间(字节)
+	UsedPercent float64 // 使用率(%)
+	Fstype      string  // 文件系统类型
 }
 
+// diskBusiness 磁盘管理业务逻辑
 type diskBusiness struct{}
 
+// DiskBusiness 磁盘管理业务实例
 var DiskBusiness = &diskBusiness{}
 
+// Usage 获取磁盘使用情况
 func (b *diskBusiness) Usage() ([]DiskInfo, error) {
 	partitions, err := disk.Partitions(true)
 	if err != nil {
@@ -48,10 +52,12 @@ func (b *diskBusiness) Usage() ([]DiskInfo, error) {
 	return diskInfos, nil
 }
 
+// List 获取磁盘分区列表
 func (b *diskBusiness) List() ([]DiskInfo, error) {
 	return b.Usage()
 }
 
+// FormatDiskTable 格式化磁盘信息为表格字符串
 func (b *diskBusiness) FormatDiskTable(disks []DiskInfo) string {
 	if len(disks) == 0 {
 		return "没有找到磁盘分区"
@@ -71,6 +77,7 @@ func (b *diskBusiness) FormatDiskTable(disks []DiskInfo) string {
 	return sb.String()
 }
 
+// formatBytes 将字节数格式化为易读的字符串
 func (b *diskBusiness) formatBytes(bytes uint64) string {
 	const (
 		KB = 1024
@@ -93,6 +100,7 @@ func (b *diskBusiness) formatBytes(bytes uint64) string {
 	}
 }
 
+// GetRootDiskUsage 获取根分区磁盘使用情况
 func (b *diskBusiness) GetRootDiskUsage() (*DiskInfo, error) {
 	disks, err := b.Usage()
 	if err != nil {
@@ -112,6 +120,7 @@ func (b *diskBusiness) GetRootDiskUsage() (*DiskInfo, error) {
 	return nil, fmt.Errorf("未找到根分区")
 }
 
+// GetIOCounters 获取磁盘IO统计信息
 func (b *diskBusiness) GetIOCounters() (map[string]disk.IOCountersStat, error) {
 	ioCounters, err := disk.IOCounters()
 	if err != nil {

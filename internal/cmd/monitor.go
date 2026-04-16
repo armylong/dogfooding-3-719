@@ -1,3 +1,4 @@
+// Package cmd 提供命令行命令实现
 package cmd
 
 import (
@@ -13,17 +14,22 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// monitorCmd 监控命令结构体
 type monitorCmd struct{}
 
+// MonitorCmd 监控命令实例
 var MonitorCmd = &monitorCmd{}
 
+// 命令行标志变量
 var (
-	RefreshFlag  bool
-	IntervalFlag int
-	SortFlag     string
-	LimitFlag    int
+	RefreshFlag  bool   // 是否实时刷新
+	IntervalFlag int    // 刷新间隔(秒)
+	SortFlag     string // 排序方式(cpu/memory/pid)
+	LimitFlag    int    // 显示数量限制
 )
 
+// MonitorHandler 监控命令主处理函数
+// 根据子命令类型分发到对应的处理函数
 func (m *monitorCmd) MonitorHandler(cmd *cobra.Command, args []string) {
 	if len(args) == 0 {
 		fmt.Println("错误: 请指定子命令")
@@ -50,6 +56,8 @@ func (m *monitorCmd) MonitorHandler(cmd *cobra.Command, args []string) {
 	}
 }
 
+// handleProcess 处理进程相关子命令
+// 支持的子命令: list, top, kill, find
 func (m *monitorCmd) handleProcess(cmd *cobra.Command, args []string) {
 	if len(args) == 0 {
 		fmt.Println("错误: 请指定 process 子命令")
@@ -80,6 +88,8 @@ func (m *monitorCmd) handleProcess(cmd *cobra.Command, args []string) {
 	}
 }
 
+// processList 显示进程列表
+// 支持实时刷新和排序
 func (m *monitorCmd) processList() {
 	if RefreshFlag {
 		m.runWithRefresh(func() {
@@ -100,6 +110,8 @@ func (m *monitorCmd) processList() {
 	}
 }
 
+// processTop 显示资源占用最高的进程
+// 支持实时刷新和排序
 func (m *monitorCmd) processTop() {
 	if RefreshFlag {
 		m.runWithRefresh(func() {
@@ -120,6 +132,8 @@ func (m *monitorCmd) processTop() {
 	}
 }
 
+// processKill 杀死指定进程
+// pidStr: 进程ID字符串
 func (m *monitorCmd) processKill(pidStr string) {
 	pid, err := strconv.ParseInt(pidStr, 10, 32)
 	if err != nil {
@@ -133,6 +147,8 @@ func (m *monitorCmd) processKill(pidStr string) {
 	}
 }
 
+// processFind 按名称查找进程
+// name: 进程名称(支持模糊匹配)
 func (m *monitorCmd) processFind(name string) {
 	processes, err := monitorBusiness.ProcessBusiness.FindProcess(name)
 	if err != nil {
@@ -149,6 +165,8 @@ func (m *monitorCmd) processFind(name string) {
 	fmt.Println(monitorBusiness.ProcessBusiness.FormatProcessTable(processes))
 }
 
+// handleDisk 处理磁盘相关子命令
+// 支持的子命令: usage, list
 func (m *monitorCmd) handleDisk(cmd *cobra.Command, args []string) {
 	if len(args) == 0 {
 		fmt.Println("错误: 请指定 disk 子命令")
@@ -167,6 +185,8 @@ func (m *monitorCmd) handleDisk(cmd *cobra.Command, args []string) {
 	}
 }
 
+// diskUsage 显示磁盘使用情况
+// 支持实时刷新
 func (m *monitorCmd) diskUsage() {
 	if RefreshFlag {
 		m.runWithRefresh(func() {
@@ -187,6 +207,7 @@ func (m *monitorCmd) diskUsage() {
 	}
 }
 
+// diskList 显示磁盘分区列表
 func (m *monitorCmd) diskList() {
 	disks, err := monitorBusiness.DiskBusiness.List()
 	if err != nil {
@@ -196,6 +217,8 @@ func (m *monitorCmd) diskList() {
 	fmt.Println(monitorBusiness.DiskBusiness.FormatDiskTable(disks))
 }
 
+// handleMemory 处理内存相关子命令
+// 支持的子命令: usage
 func (m *monitorCmd) handleMemory(cmd *cobra.Command, args []string) {
 	if len(args) == 0 {
 		fmt.Println("错误: 请指定 memory 子命令")
@@ -212,6 +235,8 @@ func (m *monitorCmd) handleMemory(cmd *cobra.Command, args []string) {
 	}
 }
 
+// memoryUsage 显示内存使用情况
+// 支持实时刷新
 func (m *monitorCmd) memoryUsage() {
 	if RefreshFlag {
 		m.runWithRefresh(func() {
@@ -232,6 +257,8 @@ func (m *monitorCmd) memoryUsage() {
 	}
 }
 
+// handleCPU 处理CPU相关子命令
+// 支持的子命令: usage, info
 func (m *monitorCmd) handleCPU(cmd *cobra.Command, args []string) {
 	if len(args) == 0 {
 		fmt.Println("错误: 请指定 cpu 子命令")
@@ -250,6 +277,8 @@ func (m *monitorCmd) handleCPU(cmd *cobra.Command, args []string) {
 	}
 }
 
+// cpuUsage 显示CPU使用率
+// 支持实时刷新
 func (m *monitorCmd) cpuUsage() {
 	if RefreshFlag {
 		m.runWithRefresh(func() {
@@ -270,6 +299,8 @@ func (m *monitorCmd) cpuUsage() {
 	}
 }
 
+// cpuInfo 显示CPU详细信息
+// 包括型号、核心数和使用率
 func (m *monitorCmd) cpuInfo() {
 	usage, err := monitorBusiness.CPUBusiness.Usage(time.Second)
 	if err != nil {
@@ -286,6 +317,8 @@ func (m *monitorCmd) cpuInfo() {
 	fmt.Println(monitorBusiness.CPUBusiness.FormatCPUTable(usage, info))
 }
 
+// handleNetwork 处理网络相关子命令
+// 支持的子命令: connections, ports, kill-port
 func (m *monitorCmd) handleNetwork(cmd *cobra.Command, args []string) {
 	if len(args) == 0 {
 		fmt.Println("错误: 请指定 network 子命令")
@@ -310,6 +343,8 @@ func (m *monitorCmd) handleNetwork(cmd *cobra.Command, args []string) {
 	}
 }
 
+// networkConnections 显示网络连接列表
+// 支持实时刷新
 func (m *monitorCmd) networkConnections() {
 	if RefreshFlag {
 		m.runWithRefresh(func() {
@@ -330,6 +365,8 @@ func (m *monitorCmd) networkConnections() {
 	}
 }
 
+// networkPorts 显示监听端口列表
+// 支持实时刷新
 func (m *monitorCmd) networkPorts() {
 	if RefreshFlag {
 		m.runWithRefresh(func() {
@@ -350,6 +387,8 @@ func (m *monitorCmd) networkPorts() {
 	}
 }
 
+// networkKillPort 杀死占用指定端口的进程
+// portStr: 端口号字符串
 func (m *monitorCmd) networkKillPort(portStr string) {
 	port, err := strconv.Atoi(portStr)
 	if err != nil {
@@ -363,6 +402,8 @@ func (m *monitorCmd) networkKillPort(portStr string) {
 	}
 }
 
+// handleSystem 处理系统信息相关子命令
+// 支持的子命令: info, uptime
 func (m *monitorCmd) handleSystem(cmd *cobra.Command, args []string) {
 	if len(args) == 0 {
 		fmt.Println("错误: 请指定 system 子命令")
@@ -381,6 +422,8 @@ func (m *monitorCmd) handleSystem(cmd *cobra.Command, args []string) {
 	}
 }
 
+// systemInfo 显示系统信息
+// 包括主机名、操作系统、平台等
 func (m *monitorCmd) systemInfo() {
 	info, err := monitorBusiness.SystemBusiness.Info()
 	if err != nil {
@@ -390,6 +433,7 @@ func (m *monitorCmd) systemInfo() {
 	fmt.Println(monitorBusiness.SystemBusiness.FormatSystemInfo(info))
 }
 
+// systemUptime 显示系统运行时间
 func (m *monitorCmd) systemUptime() {
 	uptime, err := monitorBusiness.SystemBusiness.Uptime()
 	if err != nil {
@@ -399,6 +443,8 @@ func (m *monitorCmd) systemUptime() {
 	fmt.Println(monitorBusiness.SystemBusiness.FormatUptime(uptime))
 }
 
+// runWithRefresh 以实时刷新模式运行显示函数
+// displayFunc: 显示内容的函数
 func (m *monitorCmd) runWithRefresh(displayFunc func()) {
 	interval := time.Duration(IntervalFlag) * time.Second
 	if interval < time.Second {
@@ -425,10 +471,12 @@ func (m *monitorCmd) runWithRefresh(displayFunc func()) {
 	}
 }
 
+// clearScreen 清屏
 func (m *monitorCmd) clearScreen() {
 	fmt.Print("\033[2J\033[H")
 }
 
+// init 初始化默认值
 func init() {
 	SortFlag = "cpu"
 	LimitFlag = 10
@@ -436,6 +484,8 @@ func init() {
 	RefreshFlag = false
 }
 
+// parseSortFlag 解析排序参数
+// 返回有效的排序方式
 func parseSortFlag(sortBy string) string {
 	switch strings.ToLower(sortBy) {
 	case "cpu", "memory", "pid":

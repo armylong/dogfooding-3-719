@@ -2,92 +2,57 @@ package monitor
 
 import (
 	"fmt"
-	"runtime"
 	"strings"
 	"time"
 
 	"github.com/shirou/gopsutil/v4/host"
-	"github.com/shirou/gopsutil/v4/load"
 )
 
+// SystemInfo 系统信息结构体
 type SystemInfo struct {
-	Hostname        string
-	OS              string
-	Platform        string
-	PlatformVersion string
-	KernelVersion   string
-	Architecture    string
-	Uptime          uint64
-	BootTime        uint64
-	Procs           uint64
+	Hostname        string // 主机名
+	OS              string // 操作系统
+	Platform        string // 平台名称
+	PlatformVersion string // 平台版本
+	KernelVersion   string // 内核版本
+	Architecture    string // 架构
+	Uptime          uint64 // 运行时间(秒)
 }
 
-type UptimeInfo struct {
-	Days    int
-	Hours   int
-	Minutes int
-	Seconds int
-	Total   uint64
-}
-
-type LoadInfo struct {
-	Load1  float64
-	Load5  float64
-	Load15 float64
-}
-
+// systemBusiness 系统信息业务逻辑
 type systemBusiness struct{}
 
+// SystemBusiness 系统信息业务实例
 var SystemBusiness = &systemBusiness{}
 
+// Info 获取系统信息
 func (b *systemBusiness) Info() (*SystemInfo, error) {
-	info, err := host.Info()
+	hostInfo, err := host.Info()
 	if err != nil {
 		return nil, fmt.Errorf("获取系统信息失败: %v", err)
 	}
 
 	return &SystemInfo{
-		Hostname:        info.Hostname,
-		OS:              info.OS,
-		Platform:        info.Platform,
-		PlatformVersion: info.PlatformVersion,
-		KernelVersion:   info.KernelVersion,
-		Architecture:    runtime.GOARCH,
-		Uptime:          info.Uptime,
-		BootTime:        info.BootTime,
-		Procs:           info.Procs,
+		Hostname:        hostInfo.Hostname,
+		OS:              hostInfo.OS,
+		Platform:        hostInfo.Platform,
+		PlatformVersion: hostInfo.PlatformVersion,
+		KernelVersion:   hostInfo.KernelVersion,
+		Architecture:    hostInfo.KernelArch,
+		Uptime:          hostInfo.Uptime,
 	}, nil
 }
 
-func (b *systemBusiness) Uptime() (*UptimeInfo, error) {
-	info, err := host.Info()
+// Uptime 获取系统运行时间
+func (b *systemBusiness) Uptime() (uint64, error) {
+	hostInfo, err := host.Info()
 	if err != nil {
-		return nil, fmt.Errorf("获取运行时间失败: %v", err)
+		return 0, fmt.Errorf("获取运行时间失败: %v", err)
 	}
-
-	uptime := info.Uptime
-	return &UptimeInfo{
-		Days:    int(uptime / 86400),
-		Hours:   int((uptime % 86400) / 3600),
-		Minutes: int((uptime % 3600) / 60),
-		Seconds: int(uptime % 60),
-		Total:   uptime,
-	}, nil
+	return hostInfo.Uptime, nil
 }
 
-func (b *systemBusiness) Load() (*LoadInfo, error) {
-	loadStat, err := load.Avg()
-	if err != nil {
-		return nil, fmt.Errorf("获取系统负载失败: %v", err)
-	}
-
-	return &LoadInfo{
-		Load1:  loadStat.Load1,
-		Load5:  loadStat.Load5,
-		Load15: loadStat.Load15,
-	}, nil
-}
-
+// FormatSystemInfo 格式化系统信息为字符串
 func (b *systemBusiness) FormatSystemInfo(info *SystemInfo) string {
 	var sb strings.Builder
 
@@ -100,52 +65,64 @@ func (b *systemBusiness) FormatSystemInfo(info *SystemInfo) string {
 	sb.WriteString(fmt.Sprintf("平台版本:     %s\n", info.PlatformVersion))
 	sb.WriteString(fmt.Sprintf("内核版本:     %s\n", info.KernelVersion))
 	sb.WriteString(fmt.Sprintf("架构:         %s\n", info.Architecture))
-	sb.WriteString(fmt.Sprintf("进程数:       %d\n", info.Procs))
+	sb.WriteString(fmt.Sprintf("运行时间:     %s\n", b.formatUptime(info.Uptime)))
 	sb.WriteString("========================================\n")
 
 	return sb.String()
 }
 
-func (b *systemBusiness) FormatUptime(uptime *UptimeInfo) string {
-	var sb strings.Builder
-
-	sb.WriteString("========================================\n")
-	sb.WriteString("            系统运行时间                \n")
-	sb.WriteString("========================================\n")
-	sb.WriteString(fmt.Sprintf("运行天数:     %d 天\n", uptime.Days))
-	sb.WriteString(fmt.Sprintf("运行时间:     %d 小时 %d 分钟 %d 秒\n", uptime.Hours, uptime.Minutes, uptime.Seconds))
-	sb.WriteString(fmt.Sprintf("总秒数:       %d 秒\n", uptime.Total))
-	sb.WriteString("========================================\n")
-
-	return sb.String()
+// FormatUptime 格式化运行时间为字符串
+func (b *systemBusiness) FormatUptime(uptime uint64) string {
+	return b.formatUptime(uptime)
 }
 
-func (b *systemBusiness) FormatLoad(load *LoadInfo) string {
-	var sb strings.Builder
+// formatUptime 将秒数格式化为易读的时间字符串
+func (b *systemBusiness) formatUptime(seconds uint64) string {
+	days := seconds / 86400
+	hours := (seconds % 86400) / 3600
+	minutes := (seconds % 3600) / 60
+	secs := seconds % 60
 
-	sb.WriteString("========================================\n")
-	sb.WriteString("            系统负载                    \n")
-	sb.WriteString("========================================\n")
-	sb.WriteString(fmt.Sprintf("1分钟负载:    %.2f\n", load.Load1))
-	sb.WriteString(fmt.Sprintf("5分钟负载:    %.2f\n", load.Load5))
-	sb.WriteString(fmt.Sprintf("15分钟负载:   %.2f\n", load.Load15))
-	sb.WriteString("========================================\n")
+	var parts []string
+	if days > 0 {
+		parts = append(parts, fmt.Sprintf("%d天", days))
+	}
+	if hours > 0 {
+		parts = append(parts, fmt.Sprintf("%d小时", hours))
+	}
+	if minutes > 0 {
+		parts = append(parts, fmt.Sprintf("%d分钟", minutes))
+	}
+	parts = append(parts, fmt.Sprintf("%d秒", secs))
 
-	return sb.String()
+	return strings.Join(parts, " ")
 }
 
-func (b *systemBusiness) GetBootTime() (time.Time, error) {
+// BootTime 获取系统启动时间
+func (b *systemBusiness) BootTime() (uint64, error) {
 	bootTime, err := host.BootTime()
 	if err != nil {
-		return time.Time{}, fmt.Errorf("获取启动时间失败: %v", err)
+		return 0, fmt.Errorf("获取启动时间失败: %v", err)
 	}
-	return time.Unix(int64(bootTime), 0), nil
+	return bootTime, nil
 }
 
-func (b *systemBusiness) GetUsers() ([]host.UserStat, error) {
+// Users 获取登录用户列表
+func (b *systemBusiness) Users() ([]host.UserStat, error) {
 	users, err := host.Users()
 	if err != nil {
-		return nil, fmt.Errorf("获取用户信息失败: %v", err)
+		return nil, fmt.Errorf("获取用户列表失败: %v", err)
 	}
 	return users, nil
+}
+
+// GetBootTimeFormatted 获取格式化的启动时间
+func (b *systemBusiness) GetBootTimeFormatted() (string, error) {
+	bootTime, err := b.BootTime()
+	if err != nil {
+		return "", err
+	}
+
+	t := time.Unix(int64(bootTime), 0)
+	return t.Format("2006-01-02 15:04:05"), nil
 }

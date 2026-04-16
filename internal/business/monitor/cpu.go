@@ -2,57 +2,67 @@ package monitor
 
 import (
 	"fmt"
+	"runtime"
 	"strings"
 	"time"
 
 	"github.com/shirou/gopsutil/v4/cpu"
 )
 
+// CPUInfo CPU信息结构体
 type CPUInfo struct {
-	ModelName string
-	Cores     int
-	Usage     float64
+	ModelName string  // CPU型号
+	Cores     int32   // 核心数
+	Mhz       float64 // 频率(MHz)
 }
 
-type CPUUsage struct {
-	User    float64
-	System  float64
-	Idle    float64
-	Nice    float64
-	Iowait  float64
-	Irq     float64
-	Softirq float64
-}
-
+// cpuBusiness CPU管理业务逻辑
 type cpuBusiness struct{}
 
+// CPUBusiness CPU管理业务实例
 var CPUBusiness = &cpuBusiness{}
 
+// Usage 获取CPU使用率
+// interval: 采样间隔时间
 func (b *cpuBusiness) Usage(interval time.Duration) ([]float64, error) {
-	percentages, err := cpu.Percent(interval, true)
+	percent, err := cpu.Percent(interval, true)
 	if err != nil {
 		return nil, fmt.Errorf("获取CPU使用率失败: %v", err)
 	}
-	return percentages, nil
+	return percent, nil
 }
 
-func (b *cpuBusiness) Info() ([]cpu.InfoStat, error) {
-	info, err := cpu.Info()
+// Info 获取CPU信息
+func (b *cpuBusiness) Info() ([]CPUInfo, error) {
+	cpuInfos, err := cpu.Info()
 	if err != nil {
 		return nil, fmt.Errorf("获取CPU信息失败: %v", err)
 	}
-	return info, nil
-}
 
-func (b *cpuBusiness) Count(logical bool) (int, error) {
-	count, err := cpu.Counts(logical)
-	if err != nil {
-		return 0, fmt.Errorf("获取CPU核心数失败: %v", err)
+	var infos []CPUInfo
+	for _, info := range cpuInfos {
+		infos = append(infos, CPUInfo{
+			ModelName: info.ModelName,
+			Cores:     info.Cores,
+			Mhz:       info.Mhz,
+		})
 	}
-	return count, nil
+
+	return infos, nil
 }
 
-func (b *cpuBusiness) FormatCPUTable(usage []float64, info []cpu.InfoStat) string {
+// Count 获取CPU核心数
+func (b *cpuBusiness) Count() (int, int, error) {
+	logical := runtime.NumCPU()
+	physical, err := cpu.Counts(false)
+	if err != nil {
+		return 0, 0, fmt.Errorf("获取CPU核心数失败: %v", err)
+	}
+	return logical, physical, nil
+}
+
+// FormatCPUTable 格式化CPU信息为表格字符串
+func (b *cpuBusiness) FormatCPUTable(usage []float64, info []CPUInfo) string {
 	var sb strings.Builder
 
 	sb.WriteString("========================================\n")
@@ -61,12 +71,13 @@ func (b *cpuBusiness) FormatCPUTable(usage []float64, info []cpu.InfoStat) strin
 
 	if len(info) > 0 {
 		sb.WriteString(fmt.Sprintf("型号:         %s\n", info[0].ModelName))
-		sb.WriteString(fmt.Sprintf("核心数:       %d\n", len(info)))
-		sb.WriteString(fmt.Sprintf("物理核心:     %d\n", info[0].Cores))
+		sb.WriteString(fmt.Sprintf("核心数:       %d\n", info[0].Cores))
 	}
 
-	logicalCores, _ := b.Count(true)
-	sb.WriteString(fmt.Sprintf("逻辑核心:     %d\n", logicalCores))
+	logical, physical, _ := b.Count()
+	sb.WriteString(fmt.Sprintf("逻辑核心:     %d\n", logical))
+	sb.WriteString(fmt.Sprintf("物理核心:     %d\n", physical))
+
 	sb.WriteString("========================================\n")
 	sb.WriteString("            各核心使用率                \n")
 	sb.WriteString("========================================\n")
@@ -75,14 +86,14 @@ func (b *cpuBusiness) FormatCPUTable(usage []float64, info []cpu.InfoStat) strin
 		sb.WriteString(fmt.Sprintf("核心 %d:       %.1f%%\n", i, u))
 	}
 
-	avgUsage := b.calculateAverage(usage)
 	sb.WriteString("========================================\n")
-	sb.WriteString(fmt.Sprintf("平均使用率:   %.1f%%\n", avgUsage))
+	sb.WriteString(fmt.Sprintf("平均使用率:   %.1f%%\n", b.calculateAverage(usage)))
 	sb.WriteString("========================================\n")
 
 	return sb.String()
 }
 
+// FormatUsageOnly 仅格式化CPU使用率
 func (b *cpuBusiness) FormatUsageOnly(usage []float64) string {
 	var sb strings.Builder
 
@@ -94,18 +105,19 @@ func (b *cpuBusiness) FormatUsageOnly(usage []float64) string {
 		sb.WriteString(fmt.Sprintf("核心 %d:       %.1f%%\n", i, u))
 	}
 
-	avgUsage := b.calculateAverage(usage)
 	sb.WriteString("========================================\n")
-	sb.WriteString(fmt.Sprintf("平均使用率:   %.1f%%\n", avgUsage))
+	sb.WriteString(fmt.Sprintf("平均使用率:   %.1f%%\n", b.calculateAverage(usage)))
 	sb.WriteString("========================================\n")
 
 	return sb.String()
 }
 
+// calculateAverage 计算平均使用率
 func (b *cpuBusiness) calculateAverage(usage []float64) float64 {
 	if len(usage) == 0 {
 		return 0
 	}
+
 	var total float64
 	for _, u := range usage {
 		total += u
@@ -113,13 +125,16 @@ func (b *cpuBusiness) calculateAverage(usage []float64) float64 {
 	return total / float64(len(usage))
 }
 
+// GetTotalUsage 获取总体CPU使用率
 func (b *cpuBusiness) GetTotalUsage(interval time.Duration) (float64, error) {
-	percentages, err := cpu.Percent(interval, false)
+	percent, err := cpu.Percent(interval, false)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("获取CPU使用率失败: %v", err)
 	}
-	if len(percentages) > 0 {
-		return percentages[0], nil
+
+	if len(percent) > 0 {
+		return percent[0], nil
 	}
+
 	return 0, nil
 }

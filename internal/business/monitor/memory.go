@@ -7,22 +7,26 @@ import (
 	"github.com/shirou/gopsutil/v4/mem"
 )
 
+// MemoryInfo 内存信息结构体
 type MemoryInfo struct {
-	Total       uint64
-	Available   uint64
-	Used        uint64
-	Free        uint64
-	UsedPercent float64
-	SwapTotal   uint64
-	SwapUsed    uint64
-	SwapFree    uint64
-	SwapPercent float64
+	Total       uint64  // 总内存(字节)
+	Available   uint64  // 可用内存(字节)
+	Used        uint64  // 已使用内存(字节)
+	Free        uint64  // 空闲内存(字节)
+	UsedPercent float64 // 使用率(%)
+	SwapTotal   uint64  // 交换内存总量(字节)
+	SwapUsed    uint64  // 交换内存已使用(字节)
+	SwapFree    uint64  // 交换内存空闲(字节)
+	SwapPercent float64 // 交换内存使用率(%)
 }
 
+// memoryBusiness 内存管理业务逻辑
 type memoryBusiness struct{}
 
+// MemoryBusiness 内存管理业务实例
 var MemoryBusiness = &memoryBusiness{}
 
+// Usage 获取内存使用情况
 func (b *memoryBusiness) Usage() (*MemoryInfo, error) {
 	vmStat, err := mem.VirtualMemory()
 	if err != nil {
@@ -47,6 +51,7 @@ func (b *memoryBusiness) Usage() (*MemoryInfo, error) {
 	}, nil
 }
 
+// FormatMemoryTable 格式化内存信息为表格字符串
 func (b *memoryBusiness) FormatMemoryTable(info *MemoryInfo) string {
 	var sb strings.Builder
 
@@ -68,6 +73,7 @@ func (b *memoryBusiness) FormatMemoryTable(info *MemoryInfo) string {
 	return sb.String()
 }
 
+// formatBytes 将字节数格式化为易读的字符串
 func (b *memoryBusiness) formatBytes(bytes uint64) string {
 	const (
 		KB = 1024
@@ -90,6 +96,7 @@ func (b *memoryBusiness) formatBytes(bytes uint64) string {
 	}
 }
 
+// GetUsedPercent 获取内存使用率
 func (b *memoryBusiness) GetUsedPercent() (float64, error) {
 	info, err := b.Usage()
 	if err != nil {

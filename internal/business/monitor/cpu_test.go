@@ -40,18 +40,13 @@ func TestCPUBusiness_Info(t *testing.T) {
 }
 
 func TestCPUBusiness_Count(t *testing.T) {
-	logical, err := CPUBusiness.Count(true)
+	logical, physical, err := CPUBusiness.Count()
 	if err != nil {
 		t.Fatalf("Count failed: %v", err)
 	}
 
 	if logical <= 0 {
 		t.Errorf("Expected positive CPU count, got %d", logical)
-	}
-
-	physical, err := CPUBusiness.Count(false)
-	if err != nil {
-		t.Fatalf("Count failed: %v", err)
 	}
 
 	if physical <= 0 {

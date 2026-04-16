@@ -1,3 +1,4 @@
+// Package monitor 提供系统监控功能
 package monitor
 
 import (
@@ -12,19 +13,25 @@ import (
 	"github.com/shirou/gopsutil/v4/process"
 )
 
+// ProcessInfo 进程信息结构体
 type ProcessInfo struct {
-	PID     int32
-	Name    string
-	CPU     float64
-	Memory  float64
-	Status  string
-	Command string
+	PID     int32   // 进程ID
+	Name    string  // 进程名称
+	CPU     float64 // CPU使用率(%)
+	Memory  float64 // 内存使用率(%)
+	Status  string  // 进程状态
+	Command string  // 完整命令行
 }
 
+// processBusiness 进程管理业务逻辑
 type processBusiness struct{}
 
+// ProcessBusiness 进程管理业务实例
 var ProcessBusiness = &processBusiness{}
 
+// ListProcesses 获取进程列表
+// sortBy: 排序方式(cpu/memory/pid)
+// limit: 返回数量限制，0表示不限制
 func (b *processBusiness) ListProcesses(sortBy string, limit int) ([]ProcessInfo, error) {
 	procs, err := process.Processes()
 	if err != nil {
@@ -49,6 +56,9 @@ func (b *processBusiness) ListProcesses(sortBy string, limit int) ([]ProcessInfo
 	return processes, nil
 }
 
+// TopProcesses 获取资源占用最高的进程
+// sortBy: 排序方式(cpu/memory)，默认为cpu
+// limit: 返回数量限制
 func (b *processBusiness) TopProcesses(sortBy string, limit int) ([]ProcessInfo, error) {
 	if sortBy == "" {
 		sortBy = "cpu"
@@ -56,6 +66,8 @@ func (b *processBusiness) TopProcesses(sortBy string, limit int) ([]ProcessInfo,
 	return b.ListProcesses(sortBy, limit)
 }
 
+// KillProcess 杀死指定进程
+// pid: 进程ID
 func (b *processBusiness) KillProcess(pid int32) error {
 	p, err := process.NewProcess(pid)
 	if err != nil {
@@ -79,6 +91,8 @@ func (b *processBusiness) KillProcess(pid int32) error {
 	return nil
 }
 
+// FindProcess 按名称查找进程
+// name: 进程名称(支持模糊匹配)
 func (b *processBusiness) FindProcess(name string) ([]ProcessInfo, error) {
 	procs, err := process.Processes()
 	if err != nil {
@@ -104,6 +118,7 @@ func (b *processBusiness) FindProcess(name string) ([]ProcessInfo, error) {
 	return processes, nil
 }
 
+// getProcessInfo 获取单个进程的详细信息
 func (b *processBusiness) getProcessInfo(p *process.Process) (ProcessInfo, error) {
 	name, err := p.Name()
 	if err != nil {
@@ -125,6 +140,8 @@ func (b *processBusiness) getProcessInfo(p *process.Process) (ProcessInfo, error
 	}, nil
 }
 
+// sortProcesses 对进程列表进行排序
+// sortBy: 排序方式(cpu/memory/pid)
 func (b *processBusiness) sortProcesses(processes []ProcessInfo, sortBy string) {
 	switch sortBy {
 	case "cpu":
@@ -146,6 +163,7 @@ func (b *processBusiness) sortProcesses(processes []ProcessInfo, sortBy string) 
 	}
 }
 
+// FormatProcessTable 格式化进程列表为表格字符串
 func (b *processBusiness) FormatProcessTable(processes []ProcessInfo) string {
 	if len(processes) == 0 {
 		return "没有找到进程"
@@ -167,6 +185,7 @@ func (b *processBusiness) FormatProcessTable(processes []ProcessInfo) string {
 	return sb.String()
 }
 
+// GetProcessCount 获取进程总数
 func (b *processBusiness) GetProcessCount() (int, error) {
 	procs, err := process.Processes()
 	if err != nil {
@@ -175,6 +194,8 @@ func (b *processBusiness) GetProcessCount() (int, error) {
 	return len(procs), nil
 }
 
+// IsProcessRunning 检查进程是否正在运行
+// pid: 进程ID
 func (b *processBusiness) IsProcessRunning(pid int32) bool {
 	_, err := os.FindProcess(int(pid))
 	if err != nil {

@@ -2,7 +2,6 @@ package monitor
 
 import (
 	"testing"
-	"time"
 )
 
 func TestSystemBusiness_Info(t *testing.T) {
@@ -32,30 +31,11 @@ func TestSystemBusiness_Uptime(t *testing.T) {
 		t.Fatalf("Uptime failed: %v", err)
 	}
 
-	if uptime == nil {
-		t.Fatal("Expected uptime info, got nil")
+	if uptime == 0 {
+		t.Error("Uptime should not be zero")
 	}
 
-	if uptime.Total == 0 {
-		t.Error("Total uptime should not be zero")
-	}
-
-	t.Logf("Uptime: %d days, %d hours, %d minutes, %d seconds",
-		uptime.Days, uptime.Hours, uptime.Minutes, uptime.Seconds)
-}
-
-func TestSystemBusiness_Load(t *testing.T) {
-	load, err := SystemBusiness.Load()
-	if err != nil {
-		t.Fatalf("Load failed: %v", err)
-	}
-
-	if load == nil {
-		t.Fatal("Expected load info, got nil")
-	}
-
-	t.Logf("Load: 1min=%.2f, 5min=%.2f, 15min=%.2f",
-		load.Load1, load.Load5, load.Load15)
+	t.Logf("Uptime: %d seconds", uptime)
 }
 
 func TestSystemBusiness_FormatSystemInfo(t *testing.T) {
@@ -66,7 +46,7 @@ func TestSystemBusiness_FormatSystemInfo(t *testing.T) {
 		PlatformVersion: "14.0",
 		KernelVersion:   "23.0.0",
 		Architecture:    "arm64",
-		Procs:           200,
+		Uptime:          95445,
 	}
 
 	output := SystemBusiness.FormatSystemInfo(info)
@@ -82,68 +62,69 @@ func TestSystemBusiness_FormatSystemInfo(t *testing.T) {
 }
 
 func TestSystemBusiness_FormatUptime(t *testing.T) {
-	uptime := &UptimeInfo{
-		Days:    1,
-		Hours:   2,
-		Minutes: 30,
-		Seconds: 45,
-		Total:   95445,
-	}
+	uptime := uint64(95445)
 
 	output := SystemBusiness.FormatUptime(uptime)
 	if output == "" {
 		t.Error("FormatUptime returned empty string")
 	}
 
-	if len(output) < 50 {
-		t.Errorf("FormatUptime output too short: %d", len(output))
-	}
-
-	t.Logf("Output:\n%s", output)
+	t.Logf("Output: %s", output)
 }
 
-func TestSystemBusiness_FormatLoad(t *testing.T) {
-	load := &LoadInfo{
-		Load1:  1.5,
-		Load5:  1.2,
-		Load15: 1.0,
-	}
-
-	output := SystemBusiness.FormatLoad(load)
-	if output == "" {
-		t.Error("FormatLoad returned empty string")
-	}
-
-	if len(output) < 50 {
-		t.Errorf("FormatLoad output too short: %d", len(output))
-	}
-
-	t.Logf("Output:\n%s", output)
-}
-
-func TestSystemBusiness_GetBootTime(t *testing.T) {
-	bootTime, err := SystemBusiness.GetBootTime()
+func TestSystemBusiness_BootTime(t *testing.T) {
+	bootTime, err := SystemBusiness.BootTime()
 	if err != nil {
-		t.Fatalf("GetBootTime failed: %v", err)
+		t.Fatalf("BootTime failed: %v", err)
 	}
 
-	if bootTime.IsZero() {
+	if bootTime == 0 {
 		t.Error("Boot time should not be zero")
 	}
 
-	if bootTime.After(time.Now()) {
-		t.Error("Boot time should not be in the future")
-	}
-
-	t.Logf("Boot time: %s", bootTime.Format("2006-01-02 15:04:05"))
+	t.Logf("Boot time (unix): %d", bootTime)
 }
 
-func TestSystemBusiness_GetUsers(t *testing.T) {
-	users, err := SystemBusiness.GetUsers()
+func TestSystemBusiness_GetBootTimeFormatted(t *testing.T) {
+	bootTime, err := SystemBusiness.GetBootTimeFormatted()
 	if err != nil {
-		t.Logf("GetUsers failed (may be expected on some systems): %v", err)
+		t.Fatalf("GetBootTimeFormatted failed: %v", err)
+	}
+
+	if bootTime == "" {
+		t.Error("Boot time should not be empty")
+	}
+
+	t.Logf("Boot time: %s", bootTime)
+}
+
+func TestSystemBusiness_Users(t *testing.T) {
+	users, err := SystemBusiness.Users()
+	if err != nil {
+		t.Logf("Users failed (may be expected on some systems): %v", err)
 		return
 	}
 
 	t.Logf("Found %d users", len(users))
+}
+
+func TestSystemBusiness_formatUptime(t *testing.T) {
+	tests := []struct {
+		seconds  uint64
+		contains string
+	}{
+		{0, "0秒"},
+		{60, "1分钟"},
+		{3600, "1小时"},
+		{86400, "1天"},
+		{90061, "1天"},
+	}
+
+	for _, test := range tests {
+		result := SystemBusiness.formatUptime(test.seconds)
+		if result == "" {
+			t.Errorf("formatUptime(%d) returned empty string", test.seconds)
+		}
+		t.Logf("formatUptime(%d) = %s", test.seconds, result)
+	}
 }

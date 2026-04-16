@@ -26,25 +26,29 @@ func TestNetworkBusiness_Ports(t *testing.T) {
 			break
 		}
 		t.Logf("Port %d: %d/%s, PID: %d, Process: %s",
-			i, port.Port, port.Proto, port.Pid, port.Process)
+			i, port.Port, port.Protocol, port.Pid, port.Process)
 	}
 }
 
 func TestNetworkBusiness_FormatConnectionTable(t *testing.T) {
 	connections := []ConnectionInfo{
 		{
-			Pid:    1234,
-			Type:   "TCP",
-			Laddr:  "127.0.0.1:8080",
-			Raddr:  "0.0.0.0:0",
-			Status: "LISTEN",
+			Pid:        1234,
+			Type:       "TCP",
+			LocalAddr:  "127.0.0.1",
+			LocalPort:  8080,
+			RemoteAddr: "0.0.0.0",
+			RemotePort: 0,
+			Status:     "LISTEN",
 		},
 		{
-			Pid:    5678,
-			Type:   "TCP",
-			Laddr:  "192.168.1.1:443",
-			Raddr:  "10.0.0.1:54321",
-			Status: "ESTABLISHED",
+			Pid:        5678,
+			Type:       "TCP",
+			LocalAddr:  "192.168.1.1",
+			LocalPort:  443,
+			RemoteAddr: "10.0.0.1",
+			RemotePort: 54321,
+			Status:     "ESTABLISHED",
 		},
 	}
 
@@ -70,18 +74,18 @@ func TestNetworkBusiness_FormatConnectionTableEmpty(t *testing.T) {
 func TestNetworkBusiness_FormatPortTable(t *testing.T) {
 	ports := []PortInfo{
 		{
-			Port:    80,
-			Proto:   "TCP",
-			State:   "LISTEN",
-			Pid:     1234,
-			Process: "nginx",
+			Port:     80,
+			Protocol: "TCP",
+			Status:   "LISTEN",
+			Pid:      1234,
+			Process:  "nginx",
 		},
 		{
-			Port:    443,
-			Proto:   "TCP",
-			State:   "LISTEN",
-			Pid:     1234,
-			Process: "nginx",
+			Port:     443,
+			Protocol: "TCP",
+			Status:   "LISTEN",
+			Pid:      1234,
+			Process:  "nginx",
 		},
 	}
 
