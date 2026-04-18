@@ -1,0 +1,285 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  width: 350px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  background: #f5f5f5;
+  color: #333;
+}
+
+.container {
+  padding: 15px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.header h1 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.record-btn {
+  padding: 6px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.record-btn.off {
+  background: #e0e0e0;
+  color: #666;
+}
+
+.record-btn.on {
+  background: #4CAF50;
+  color: white;
+}
+
+.section {
+  background: white;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.section-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.filter-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filter-item {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.filter-input {
+  flex: 1;
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.filter-input:focus {
+  border-color: #2196F3;
+}
+
+.filter-remove-btn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: #ff5252;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.filter-remove-btn:hover {
+  background: #ff1744;
+}
+
+.add-filter-btn {
+  width: 100%;
+  padding: 8px;
+  border: 1px dashed #ccc;
+  background: transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #666;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.add-filter-btn:hover {
+  border-color: #2196F3;
+  color: #2196F3;
+}
+
+.api-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.api-count {
+  font-size: 13px;
+  color: #666;
+}
+
+.clear-btn {
+  padding: 4px 12px;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  color: #666;
+  transition: all 0.2s;
+}
+
+.clear-btn:hover {
+  border-color: #ff5252;
+  color: #ff5252;
+}
+
+.api-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.api-item {
+  padding: 10px;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.api-item:hover {
+  background: #f9f9f9;
+}
+
+.api-item:last-child {
+  border-bottom: none;
+}
+
+.api-item-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.api-method {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 3px;
+  text-transform: uppercase;
+}
+
+.api-method.get {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.api-method.post {
+  background: #e8f5e9;
+  color: #388e3c;
+}
+
+.api-method.put {
+  background: #fff3e0;
+  color: #f57c00;
+}
+
+.api-method.delete {
+  background: #ffebee;
+  color: #d32f2f;
+}
+
+.api-method.patch {
+  background: #f3e5f5;
+  color: #7b1fa2;
+}
+
+.api-status {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.api-status.success {
+  background: #e8f5e9;
+  color: #388e3c;
+}
+
+.api-status.error {
+  background: #ffebee;
+  color: #d32f2f;
+}
+
+.api-time {
+  font-size: 11px;
+  color: #999;
+  margin-left: auto;
+}
+
+.api-url {
+  font-size: 12px;
+  color: #666;
+  word-break: break-all;
+  line-height: 1.4;
+}
+
+.empty-list {
+  text-align: center;
+  padding: 30px 10px;
+  color: #999;
+  font-size: 13px;
+}
+
+.error-message {
+  background: #ffebee;
+  color: #c62828;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  display: none;
+}
+
+.error-message.show {
+  display: block;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #bbb;
+}
