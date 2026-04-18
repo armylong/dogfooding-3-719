@@ -1,10 +1,65 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>抓接口</title>
+  <link rel="stylesheet" href="popup.css">
 </head>
 <body>
-  <h1>抓接口</h1>
+  <!-- 头部区域 -->
+  <div class="header">
+    <h1>抓接口</h1>
+    <div class="record-section">
+      <span class="record-label">录制开关</span>
+      <label class="switch">
+        <input type="checkbox" id="recordToggle">
+        <span class="slider"></span>
+      </label>
+    </div>
+    <div class="status-indicator">
+      <span class="status-dot"></span>
+      <span class="status-text">已停止</span>
+    </div>
+  </div>
+
+  <!-- 内容区域 -->
+  <div class="content">
+    <!-- 筛选条件区域 -->
+    <div class="filter-section">
+      <div class="section-title">
+        <span>筛选条件</span>
+      </div>
+      <div class="filter-list" id="filterList">
+        <!-- 动态添加筛选输入框 -->
+      </div>
+      <button class="btn-add" id="btnAddFilter">+ 添加筛选条件</button>
+    </div>
+
+    <!-- 接口列表区域 -->
+    <div class="list-section">
+      <div class="list-header">
+        <div class="api-count">
+          已捕获: <span id="apiCount">0</span> 个接口
+        </div>
+        <button class="btn-clear" id="btnClear" disabled>清空</button>
+      </div>
+      <div class="api-list" id="apiList">
+        <div class="empty-state">
+          <div class="empty-state-icon">📭</div>
+          <div>暂无捕获的接口</div>
+          <div style="font-size: 12px; margin-top: 4px;">开启录制后将自动捕获</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 服务器状态提示 -->
+    <div class="server-status hidden" id="serverStatus">
+      <span>⚠️</span>
+      <span>上传接口未连通</span>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
 </body>
 </html>
