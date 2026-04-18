@@ -3,8 +3,37 @@
 <head>
   <meta charset="UTF-8">
   <title>抓接口</title>
+  <link rel="stylesheet" href="popup.css">
 </head>
 <body>
-  <h1>抓接口</h1>
+  <div class="container">
+    <div class="header">
+      <h1>抓接口</h1>
+      <button id="recordBtn" class="record-btn off">开始录制</button>
+    </div>
+
+    <div id="errorMessage" class="error-message"></div>
+
+    <div class="section">
+      <div class="section-title">筛选条件</div>
+      <div id="filterList" class="filter-list"></div>
+      <button id="addFilterBtn" class="add-filter-btn">+ 添加筛选条件</button>
+    </div>
+
+    <div class="section">
+      <div class="api-list-header">
+        <span class="section-title">接口列表</span>
+        <div>
+          <span id="apiCount" class="api-count">共 0 条</span>
+          <button id="clearBtn" class="clear-btn">清空</button>
+        </div>
+      </div>
+      <div id="apiList" class="api-list">
+        <div class="empty-list">暂无捕获的接口数据</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
 </body>
 </html>
